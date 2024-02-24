@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 dash.register_page(__name__, suppress_callback_exceptions=True, path='/')
 # ---------------------import data-------------------
-listings=pd.read_csv("/Users/bobbydhada/mds/Data-551/group-proj/airbnb-dashboard/data/processed/airbnb_data.csv")
+listings=pd.read_csv("../data/processed/airbnb_data.csv")
 CITY=listings['city'].unique().tolist()
 idx_Van_DT=(listings['city']=='Vancouver')&(listings['neighbourhood']=='Downtown')
 default_price_min=listings.loc[idx_Van_DT, 'price'].min()
@@ -93,8 +93,8 @@ number=dbc.Card(
 listing_map=dbc.Card([
                     dbc.CardHeader("Listings Across Canada 🍁"),
                     dcc.Graph(id='listing_map', 
-                                  style={'width': '100%', 
-                                         'height': '100%'}
+                              style={'width': '100%', 
+                                    'height': '100%'}
                             )
                 ],
                 className= 'card map-card',
