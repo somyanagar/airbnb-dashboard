@@ -92,9 +92,10 @@ number=dbc.Card(
 )
 listing_map=dbc.Card([
                     dbc.CardHeader("Listings Across Canada 🍁"),
-                    dcc.Graph(id='listing_map', 
+                    dcc.Graph(id='listing_map',
+                              className="h-100",
                               style={'width': '100%', 
-                                    'height': '100%'}
+                                         'height': '100%'}
                             )
                 ],
                 className= 'card map-card',
@@ -172,6 +173,7 @@ def update_price_range(city, neighbourhood):
     max_price=price.max()
     range=[min_price, max_price + 15]
     return min_price, max_price + 15, range
+
 # display listing count according to city and neighbourhood
 @callback(
     Output('listing_count', 'children'),
@@ -186,6 +188,7 @@ def update_listing_count(city, neighbourhood, price_range):
         idx(listings['city']==city)&(listings['price'].between(price_range[0], price_range[1]))
     count=listings.loc[idx, ].shape[0]
     return count
+
 # the map plot
 @callback(
     Output('listing_map', 'figure'),
@@ -200,34 +203,23 @@ def update_map(city, neighbourhood, price_range):
         idx = (listings['city'] == city) & (listings['neighbourhood'] == neighbourhood) & (listings['price'].between(price_range[0], price_range[1]))
         zoom_size = 14
     else:
-        idx = (listings['city'] == city) & (listings['price'].between(price_range[0], price_range[1]))
-        zoom_size = 12
-    map_data = listings.loc[idx, ['latitude', 'longitude', 'name', 'price', 'host_name', 'host url', 'url']]
-    map_data.dropna(inplace=True)
-    center_lat = map_data['latitude'].mean()
-    center_lon = map_data['longitude'].mean()
-    # Create a new scatter_mapbox figure
-    fig = go.Figure(go.Scattermapbox(
-        lat=map_data['latitude'],
-        lon=map_data['longitude'],
-        mode='markers',
-        marker=go.scattermapbox.Marker(
-            size=8,
-            cmin = price_range[0],
-            cmax = price_range[1],
-            color = map_data['price'],
-            colorscale = [[0, 'blue'], [1, 'red']],
-            colorbar = dict(title='Price')
-        ),
-        text=[f'{name}<br>Price: ${price}<br>By: <a href="{host_url}" target="_blank">{host_name}</a><br><a href="{url}" target="_blank">Visit Link</a>' for name, url, host_name, host_url, price in zip(map_data['name'], map_data['url'], map_data['host_name'], map_data['host url'], map_data['price'])],
-        hoverinfo='text'
-    ))
-    # Update layout properties
-    fig.update_layout(
-        mapbox=dict(
-            style="open-street-map",
-            center=dict(lat=center_lat, lon=center_lon),
-            zoom=zoom_size
-        )
+        idx=(listings['city']==city)&(listings['price'].between(price_range[0], price_range[1]))
+        zoom_size=12
+    map_data=listings.loc[idx, ]
+    center_lat=map_data['latitude'].mean()
+    center_lon=map_data['longitude'].mean()
+    fig=px.scatter_mapbox(
+        data_frame=map_data,
+        lat='latitude',
+        lon='longitude',
+        hover_name='name',
+        color='rating',
+        zoom=zoom_size,
+        center=dict(lat=center_lat, lon=center_lon)
     )
+    fig.update_layout(
+        mapbox_style='open-street-map',
+        margin={"r":0,"t":0,"l":0,"b":0},  # Set margins
+        hovermode='closest',
+        hoverlabel=dict(namelength=350))
     return fig
